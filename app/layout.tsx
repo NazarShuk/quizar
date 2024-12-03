@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import Link from "next/link";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -41,9 +42,9 @@ export default function RootLayout({
 function NavBar() {
   return (
     <div className="w-full h-12 bg-gray-300 flex justify-start items-center p-1 gap-5">
-      <a className="text-2xl font-bold" href="/">
+      <Link className="text-2xl font-bold" href="/">
         Quizar
-      </a>
+      </Link>
       <h2 className="text-xl">New</h2>
       <form action={"/search"}>
         <input type="text" name="query" placeholder="Search..." />
