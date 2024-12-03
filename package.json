@@ -13,11 +13,12 @@
     "dotenv": "^16.4.6",
     "drizzle-orm": "^0.36.4",
     "next": "15.0.3",
-    "puppeteer": "^23.9.0",
+    "puppeteer": "^23.10.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "react": "19.0.0-rc-66855b96-20241106",
-    "react-dom": "19.0.0-rc-66855b96-20241106"
+    "react-dom": "19.0.0-rc-66855b96-20241106",
+    "react-toastify": "^10.0.6"
   },
   "devDependencies": {
     "@types/node": "^20",

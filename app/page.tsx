@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { cloneQuizlet } from "./actions";
 import { useRouter } from "next/navigation";
+import {toast} from "react-toastify"
 
 export default function Home() {
   return (
@@ -16,6 +17,11 @@ function CloneForm() {
   const router = useRouter();
 
   async function submitForm(formData: FormData) {
+    if(isSubmitting) {
+      toast.error("Wait for this cloning to finish!")
+      return
+    }
+
     console.log("started submit");
     setSubmitting(true);
 

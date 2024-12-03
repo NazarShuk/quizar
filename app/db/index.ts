@@ -2,10 +2,11 @@ import { drizzle } from "drizzle-orm/neon-http";
 import { quizarsTable } from "./schema";
 import { eq } from "drizzle-orm";
 
-const db = drizzle(process.env.DATABASE_URL);
+const db = drizzle(process.env.DATABASE_URL as string);
 
 export async function putNewTerm(jsonTerms: string) {
   const terms: typeof quizarsTable.$inferInsert = {
+    name: "skib",
     terms: jsonTerms,
   };
 
@@ -26,4 +27,19 @@ export async function getTerms(id: number) {
     .where(eq(quizarsTable.id, id));
 
   return terms[0].terms as Array<{ term: string; definition: string }>;
+}
+
+export async function getTermsPage(page : number){
+  const items_per_page = 10
+
+  const terms = await db.select({
+    terms: quizarsTable.terms
+  })
+  .from(quizarsTable)
+  .limit(items_per_page)
+  .offset(page * items_per_page)
+
+  console.log(terms)
+
+  return terms
 }

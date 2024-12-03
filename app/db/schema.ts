@@ -1,6 +1,7 @@
-import { integer, json, pgTable } from "drizzle-orm/pg-core";
+import { integer, json, pgTable, varchar } from "drizzle-orm/pg-core";
 
 export const quizarsTable = pgTable("quizars", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  terms: json().notNull(),
+  name: varchar().notNull(),
+  terms: json().notNull()
 });

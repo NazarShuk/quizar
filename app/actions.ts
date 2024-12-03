@@ -20,7 +20,7 @@ export async function cloneQuizlet(data: FormData) {
   await page.setViewport({ width: 1024, height: 1024 });
 
   await page.goto(url);
-  await page.waitForSelector(".SetPageTerms-termsList");
+  await page.waitForSelector(".SetPageTerms-termsList", {timeout: 60000});
   console.log("page loaded.");
 
   const terms = await page.evaluate(() => {
