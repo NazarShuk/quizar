@@ -1,41 +1,41 @@
 "use client";
 import { useState } from "react";
 import { cloneQuizlet } from "./actions";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   return (
-    <div className="w-full h-screen flex flex-col justify-center items-center">
+    <div className="w-full h-full flex flex-col justify-center items-center">
       <CloneForm />
     </div>
   );
 }
 
+function CloneForm() {
+  const [isSubmitting, setSubmitting] = useState(false);
+  const router = useRouter();
 
-function CloneForm(){
-  
-  const [isSubmitting, setSubmitting] = useState(false)
-  const router = useRouter()
+  async function submitForm(formData: FormData) {
+    console.log("started submit");
+    setSubmitting(true);
 
-  async function submitForm(formData : FormData){
-    setSubmitting(true)  
-    
     try {
-      let result = await cloneQuizlet(formData)
+      const result = await cloneQuizlet(formData);
 
-      router.refresh()
+      setSubmitting(false);
+      router.push(`/terms/${result}`);
+    } catch (e) {
+      setSubmitting(false);
+      alert(e);
     }
-    catch(e){
-      setSubmitting(false)
-    }
-
-  
   }
 
-  if (isSubmitting){
-    <div className="flex bg-gray-300 justify-center items-center">
-      <h1>Loading</h1>
-    </div>
+  if (isSubmitting) {
+    return (
+      <div className="flex bg-gray-300 justify-center items-center">
+        <h1 className="animate-spin">Loading</h1>
+      </div>
+    );
   }
 
   return (
@@ -46,6 +46,5 @@ function CloneForm(){
         <button type="submit">Submit</button>
       </form>
     </div>
-  )
-
+  );
 }
