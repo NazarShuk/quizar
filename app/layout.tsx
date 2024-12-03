@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import Link from "next/link";
 import { ToastContainer } from "react-toastify";
+import SearchInput from "./lib/SearchInput";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -49,9 +50,8 @@ function NavBar() {
         Quizar
       </Link>
       <h2 className="text-xl">New</h2>
-      <form action={"/search"}>
-        <input type="text" name="query" placeholder="Search..." />
-      </form>
+
+      <SearchInput />
     </div>
   );
 }
