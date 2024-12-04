@@ -3,7 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import Link from "next/link";
 import { ToastContainer } from "react-toastify";
-import SearchInput from "./lib/SearchInput";
+import SearchInput from "@/lib/SearchInput";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -31,10 +31,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className={"flex flex-col"}>
+        <div className={"flex flex-col items-center"}>
           <NavBar />
 
-          <div className="p-2">{children}</div>
+          <div className="p-2 lg:w-1/2">{children}</div>
         </div>
 
         <ToastContainer />
@@ -45,11 +45,13 @@ export default function RootLayout({
 
 function NavBar() {
   return (
-    <div className="w-full h-12 bg-gray-300 flex justify-start items-center p-1 gap-5">
+    <div className="w-full h-12 bg-gray-100 flex justify-start items-center p-1 gap-5">
       <Link className="text-2xl font-bold" href="/">
         Quizar
       </Link>
-      <h2 className="text-xl">New</h2>
+      <Link className="text-xl" href={"/terms"}>
+        All Terms
+      </Link>
 
       <SearchInput />
     </div>

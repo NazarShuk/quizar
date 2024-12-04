@@ -1,6 +1,7 @@
-import { searchTerms } from "../db";
+import { db } from "@/db/index";
+import { quizars } from "@/db/schema";
+import { ilike } from "drizzle-orm";
 import Link from "next/link";
-import SearchInput from "../lib/SearchInput";
 import { Suspense } from "react";
 
 export default async function Search({
@@ -9,34 +10,38 @@ export default async function Search({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   return (
-    <Suspense fallback={"..."}>
-      <SearchResults query={(await searchParams).query as string} />
-    </Suspense>
+    <div>
+      <h1 className="text-2xl">
+        Search results for
+        <span className="font-bold"> {(await searchParams).query}</span>
+      </h1>
+      <Suspense fallback={"Searching..."}>
+        <SearchResults query={(await searchParams).query as string} />
+      </Suspense>
+    </div>
   );
 }
 
 async function SearchResults({ query }: { query: string }) {
-  const terms = await searchTerms(query);
+  const terms = await db
+    .select({
+      name: quizars.name,
+      id: quizars.id,
+    })
+    .from(quizars)
+    .where(ilike(quizars.name, `%${query}%`))
+    .limit(10);
 
   if (terms.length == 0) {
     return (
       <div>
-        <h1 className="text-2xl">
-          There were no search results for
-          <span className="font-bold"> {query}</span>
-        </h1>
-
-        <h2>Maybe search for something else:</h2>
-        <SearchInput />
+        <h1>I have noting 😭</h1>
       </div>
     );
   }
 
   return (
     <div>
-      <h1 className="text-2xl">
-        Search results for <span className="font-bold">{query}</span>
-      </h1>
       <ul>
         {terms.map((termsItem, index) => (
           <li key={index} className="underline">

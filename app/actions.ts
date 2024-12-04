@@ -1,7 +1,9 @@
 "use server";
 import puppeteer from "puppeteer-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import { putNewTerm, termsExistFromPath } from "./db/index";
+import { db } from "@/db/index";
+import { quizars } from "@/db/schema";
+import { ilike } from "drizzle-orm";
 
 puppeteer.use(StealthPlugin());
 
@@ -19,8 +21,15 @@ export async function cloneQuizlet(data: FormData) {
   if (new URL(url).hostname != "quizlet.com")
     throw new Error("the url must be a quizlet.com url");
 
-  const doesExist = await termsExistFromPath(new URL(url).pathname);
-  if (doesExist.exists) return doesExist.id;
+  const termsExist = await db
+    .select({
+      id: quizars.id,
+    })
+    .from(quizars)
+    .where(ilike(quizars.path, `${new URL(url).pathname}`))
+    .limit(1);
+
+  if (termsExist.length > 0) return termsExist[0].id;
 
   console.log(`clone request for ${url}`);
 
@@ -76,11 +85,16 @@ export async function cloneQuizlet(data: FormData) {
   console.log(terms);
   await browser.close();
 
-  const id = await putNewTerm(
-    name,
-    new URL(url).pathname,
-    JSON.stringify(terms),
-  );
+  const termsInsert: typeof quizars.$inferInsert = {
+    name: name,
+    terms: JSON.stringify(terms),
+    path: new URL(url).pathname,
+  };
+
+  const id = await db
+    .insert(quizars)
+    .values(termsInsert)
+    .returning({ id: quizars.id });
 
   return id;
 }
