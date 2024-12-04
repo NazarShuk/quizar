@@ -1,6 +1,7 @@
 import { db } from "@/db/index";
 import { quizars } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { Suspense } from "react";
 
 export default async function Terms({
   params,
@@ -9,6 +10,37 @@ export default async function Terms({
 }) {
   const id = parseInt((await params).termID);
 
+  return (
+    <Suspense fallback={<TermsListLoading />}>
+      <TermsList id={id} />
+    </Suspense>
+  );
+}
+
+async function TermsListLoading() {
+  return (
+    <div>
+      <div
+        className={`h-24 mb-5 bg-gray-200 rounded animate-pulse`}
+        role="status"
+        aria-label="Loading..."
+      />
+
+      {Array(20)
+        .fill(null)
+        .map((_, index) => (
+          <div
+            className={`h-20 mb-1.5 bg-gray-200 rounded animate-pulse`}
+            role="status"
+            aria-label="Loading..."
+            key={index}
+          />
+        ))}
+    </div>
+  );
+}
+
+async function TermsList({ id }: { id: number }) {
   const termsQuery = await db
     .select({
       terms: quizars.terms,
