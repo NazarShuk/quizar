@@ -1,5 +1,5 @@
 "use client";
-import { ChangeEvent, ChangeEventHandler, useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { submitCustomTerms } from "../actions";
 import { useRouter } from "next/navigation";
 
@@ -67,7 +67,9 @@ function TermsList({onUpdate} : {onUpdate : (terms : Array<{term: string, defini
 
     function getTerms(){
 
+        // eslint-disable-next-line 
         function removeProp(obj: any, prop: string) {
+            // eslint-disable-next-line 
             const { [prop]: removedProp, ...rest } = obj;
             return rest;
         }

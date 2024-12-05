@@ -4,7 +4,7 @@ import "./globals.css";
 import Link from "next/link";
 import { ToastContainer } from "react-toastify";
 import SearchInput from "@/lib/SearchInput";
-import { ClerkProvider, SignedIn, SignedOut, SignInButton, SignOutButton, UserButton } from "@clerk/nextjs";
+import { ClerkProvider, SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
