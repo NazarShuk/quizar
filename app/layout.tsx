@@ -4,7 +4,13 @@ import "./globals.css";
 import Link from "next/link";
 import { ToastContainer } from "react-toastify";
 import SearchInput from "@/lib/SearchInput";
-import { ClerkProvider, SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import {
+  ClerkProvider,
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  UserButton,
+} from "@clerk/nextjs";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -46,7 +52,7 @@ export default function RootLayout({
   );
 }
 
-export function NavBar() {
+function NavBar() {
   return (
     <div className="w-full h-12 bg-gray-100 flex justify-between items-center p-2.5">
       <div className="h-full flex justify-start items-center gap-5">
