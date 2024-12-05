@@ -4,6 +4,7 @@ import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { db } from "@/db/index";
 import { quizars } from "@/db/schema";
 import { ilike } from "drizzle-orm";
+import { auth } from "@clerk/nextjs/server";
 
 puppeteer.use(StealthPlugin());
 
@@ -15,6 +16,10 @@ const requestHeaders = {
 
 export async function cloneQuizlet(data: FormData) {
   "use server";
+
+  const { userId } = await auth()
+  if (!userId) throw new Error("Not authenticated")
+
   const url = data.get("url") as string;
 
   if (!url) throw new Error("no url found");
@@ -89,6 +94,7 @@ export async function cloneQuizlet(data: FormData) {
     name: name,
     terms: JSON.stringify(terms),
     path: new URL(url).pathname,
+    author: userId
   };
 
   const id = await db
@@ -97,4 +103,31 @@ export async function cloneQuizlet(data: FormData) {
     .returning({ id: quizars.id });
 
   return id;
+}
+
+export async function submitCustomTerms(data : FormData){
+
+  const {userId} = await auth()
+  if (!userId) throw new Error("Not authenticated")
+
+  const name = data.get("name") as string
+  
+  if (!name) throw new Error("Name is invalid")
+
+  const terms = data.get("terms") as string
+
+  if(!terms) throw new Error("Terms are invalid")
+   
+  const termsInsert: typeof quizars.$inferInsert = {
+      name: name,
+      terms: terms,
+      author: userId
+  };
+
+  const id = await db
+    .insert(quizars)
+    .values(termsInsert)
+    .returning({id: quizars.id})
+  
+  return id[0].id
 }

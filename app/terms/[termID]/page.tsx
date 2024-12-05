@@ -1,3 +1,4 @@
+import NotFound from "@/app/not-found";
 import { db } from "@/db/index";
 import { quizars } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -49,10 +50,15 @@ async function TermsList({ id }: { id: number }) {
     .from(quizars)
     .where(eq(quizars.id, id));
 
+  if(termsQuery.length == 0){
+    return <NotFound />
+  }
+  
   const terms = {
     name: termsQuery[0].name as string,
     terms: termsQuery[0].terms as Array<{ term: string; definition: string }>,
   };
+
 
   return (
     <div>

@@ -1,56 +1,14 @@
-"use client";
-import { useState } from "react";
-import { cloneQuizlet } from "./actions";
-import { useRouter } from "next/navigation";
-import {toast} from "react-toastify"
+import Link from "next/link";
 
 export default function Home() {
   return (
     <div className="w-full h-full flex flex-col justify-center items-center">
-      <CloneForm />
-    </div>
-  );
-}
-
-function CloneForm() {
-  const [isSubmitting, setSubmitting] = useState(false);
-  const router = useRouter();
-
-  async function submitForm(formData: FormData) {
-    if(isSubmitting) {
-      toast.error("Wait for this cloning to finish!")
-      return
-    }
-
-    console.log("started submit");
-    setSubmitting(true);
-
-    try {
-      const result = await cloneQuizlet(formData);
-
-      setSubmitting(false);
-      router.push(`/terms/${result}`);
-    } catch (e) {
-      setSubmitting(false);
-      alert(e);
-    }
-  }
-
-  if (isSubmitting) {
-    return (
-      <div className="flex bg-gray-300 justify-center items-center">
-        <h1 className="animate-spin">Loading</h1>
+      <h1 className="text-4xl">Study for your test easier and simpler</h1>
+      <div className="w-full h-fit p-1 flex justify-between items-center gap-2.5 text-xl text-blue-500">
+        <Link className="underline" href={"/new"}>Create your own</Link>
+        <Link className="underline" href={"/new/clone"}>Clone from Quizlet</Link>
+        <Link className="underline" href={"/terms"}>Look at other</Link>
       </div>
-    );
-  }
-
-  return (
-    <div>
-      <h1 className={"text-3xl"}>Clone a quizlet</h1>
-      <form action={submitForm}>
-        <input name="url" placeholder="Quizlet link" required></input>
-        <button type="submit">Submit</button>
-      </form>
     </div>
   );
 }

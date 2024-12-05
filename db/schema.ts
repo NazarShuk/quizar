@@ -5,4 +5,5 @@ export const quizars = pgTable("quizars", {
   name: varchar().notNull(),
   path: varchar(),
   terms: json().notNull(),
+  author: varchar().notNull()
 });
