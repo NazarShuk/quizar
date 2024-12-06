@@ -17,8 +17,8 @@ const requestHeaders = {
 export async function cloneQuizlet(data: FormData) {
   "use server";
 
-  const { userId } = await auth()
-  if (!userId) throw new Error("Not authenticated")
+  const { userId } = await auth();
+  if (!userId) throw new Error("Not authenticated");
 
   const url = data.get("url") as string;
 
@@ -90,11 +90,14 @@ export async function cloneQuizlet(data: FormData) {
   console.log(terms);
   await browser.close();
 
+  const searchable = data.get("searchable") as string;
+
   const termsInsert: typeof quizars.$inferInsert = {
     name: name,
     terms: JSON.stringify(terms),
     path: new URL(url).pathname,
-    author: userId
+    author: userId,
+    searchable: searchable === "true",
   };
 
   const id = await db
@@ -105,29 +108,31 @@ export async function cloneQuizlet(data: FormData) {
   return id;
 }
 
-export async function submitCustomTerms(data : FormData){
+export async function submitCustomTerms(data: FormData) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Not authenticated");
 
-  const {userId} = await auth()
-  if (!userId) throw new Error("Not authenticated")
+  const name = data.get("name") as string;
 
-  const name = data.get("name") as string
-  
-  if (!name) throw new Error("Name is invalid")
+  if (!name) throw new Error("Name is invalid");
 
-  const terms = data.get("terms") as string
+  const terms = data.get("terms") as string;
 
-  if(!terms) throw new Error("Terms are invalid")
-   
+  if (!terms) throw new Error("Terms are invalid");
+
+  const searchable = data.get("searchable") as string;
+
   const termsInsert: typeof quizars.$inferInsert = {
-      name: name,
-      terms: terms,
-      author: userId
+    name: name,
+    terms: terms,
+    author: userId,
+    searchable: searchable === "true",
   };
 
   const id = await db
     .insert(quizars)
     .values(termsInsert)
-    .returning({id: quizars.id})
-  
-  return id[0].id
+    .returning({ id: quizars.id });
+
+  return id[0].id;
 }

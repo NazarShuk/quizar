@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { cloneQuizlet } from "@/app/actions";
 import { useRouter } from "next/navigation";
-import {toast} from "react-toastify"
 
 export default function ClonePage() {
   return (
@@ -17,9 +16,8 @@ function CloneForm() {
   const router = useRouter();
 
   async function submitForm(formData: FormData) {
-    if(isSubmitting) {
-      toast.error("Wait for this cloning to finish!")
-      return
+    if (isSubmitting) {
+      return;
     }
 
     console.log("started submit");
@@ -45,11 +43,25 @@ function CloneForm() {
   }
 
   return (
-    <div>
+    <div className="w-full m-auto text-center">
       <h1 className={"text-3xl"}>Clone a quizlet</h1>
-      <form action={submitForm}>
-        <input name="url" placeholder="Quizlet link" required></input>
-        <button type="submit">Submit</button>
+      <form
+        action={submitForm}
+        className="flex flex-col justify-start w-1/2 m-auto"
+      >
+        <input
+          className="p-1 bg-gray-100 rounded"
+          name="url"
+          placeholder="Quizlet link"
+          required
+        ></input>
+        <div className="flex justify-between p-1">
+          <label>Public: </label>
+          <input type="checkbox" name="searchable" defaultValue="true"></input>
+        </div>
+        <button className="bg-gray-100 rounded w-32 p-1 m-auto" type="submit">
+          Submit
+        </button>
       </form>
     </div>
   );

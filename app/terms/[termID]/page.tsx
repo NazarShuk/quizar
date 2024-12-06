@@ -1,8 +1,11 @@
 import NotFound from "@/app/not-found";
 import { db } from "@/db/index";
 import { quizars } from "@/db/schema";
+import { clerkClient } from "@/lib/clerk";
 import { eq } from "drizzle-orm";
 import { Suspense } from "react";
+import Image from "next/image";
+import Link from "next/link";
 
 export default async function Terms({
   params,
@@ -22,12 +25,17 @@ async function TermsListLoading() {
   return (
     <div>
       <div
-        className={`h-24 mb-5 bg-gray-200 rounded animate-pulse`}
+        className={`h-20 mb-1 bg-gray-200 rounded animate-pulse`}
+        role="status"
+        aria-label="Loading..."
+      />
+      <div
+        className={`h-5 mb-5 bg-gray-200 rounded animate-pulse w-1/4`}
         role="status"
         aria-label="Loading..."
       />
 
-      {Array(20)
+      {Array(5)
         .fill(null)
         .map((_, index) => (
           <div
@@ -46,23 +54,37 @@ async function TermsList({ id }: { id: number }) {
     .select({
       terms: quizars.terms,
       name: quizars.name,
+      author: quizars.author,
     })
     .from(quizars)
     .where(eq(quizars.id, id));
 
-  if(termsQuery.length == 0){
-    return <NotFound />
+  if (termsQuery.length == 0) {
+    return <NotFound />;
   }
-  
+
   const terms = {
     name: termsQuery[0].name as string,
     terms: termsQuery[0].terms as Array<{ term: string; definition: string }>,
   };
 
-
   return (
     <div>
-      <h1 className="text-4xl mb-5">{terms.name}</h1>
+      <h1 className="text-4xl mb-1">{terms.name}</h1>
+      <User id={termsQuery[0].author as string} />
+
+      <div className="mb-5 flex items-center justify-stretch gap-1 h-24 text-xl">
+        <div className="flex items-center justify-center bg-gray-100 rounded p-1 h-full w-full">
+          <Link href={`/terms/${id}/flashcards`}>Flashcards</Link>
+        </div>
+        <div className="flex items-center justify-center bg-gray-100 rounded p-1 h-full w-full">
+          <Link href={`/terms/${id}/test`}>Test</Link>
+        </div>
+        <div className="flex items-center justify-center bg-gray-100 rounded p-1 h-full w-full">
+          <Link href={`/terms/${id}/match`}>Match</Link>
+        </div>
+      </div>
+
       <ul>
         {terms.terms.map((term, index) => (
           <li
@@ -74,6 +96,24 @@ async function TermsList({ id }: { id: number }) {
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+async function User({ id }: { id: string }) {
+  const user = await clerkClient.users.getUser(id);
+
+  return (
+    <div className="mb-1 flex items-center gap-1">
+      <h1>Made by</h1>
+      <Image
+        className="rounded-full"
+        width={25}
+        height={25}
+        src={user.imageUrl}
+        alt={"Profile"}
+      />
+      <h1>{user.username}</h1>
     </div>
   );
 }

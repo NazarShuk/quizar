@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import Link from "next/link";
-import { ToastContainer } from "react-toastify";
 import SearchInput from "@/lib/SearchInput";
 import {
   ClerkProvider,
@@ -44,8 +43,6 @@ export default function RootLayout({
 
             <div className="p-2 lg:w-1/2">{children}</div>
           </div>
-
-          <ToastContainer />
         </body>
       </html>
     </ClerkProvider>

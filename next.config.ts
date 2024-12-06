@@ -14,6 +14,16 @@ const nextConfig: NextConfig = {
       "puppeteer-extra-plugin-stealth",
     ],
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "img.clerk.com",
+        pathname: "/**",
+        port: "",
+      },
+    ],
+  },
   /* config options here */
 };
 
