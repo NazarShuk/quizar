@@ -101,7 +101,14 @@ async function TermsList({ id }: { id: number }) {
 }
 
 async function User({ id }: { id: string }) {
-  const user = await clerkClient.users.getUser(id);
+  let user
+  try{
+    user = await clerkClient.users.getUser(id);
+  }
+  catch(e){
+    console.error(e)
+    return
+  }
 
   return (
     <div className="mb-1 flex items-center gap-1">

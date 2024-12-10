@@ -78,7 +78,14 @@ async function SearchResults({ query }: { query: string }) {
 }
 
 async function User({ id, className }: { id: string; className: string }) {
-  const user = await clerkClient.users.getUser(id);
+  let user
+  try{
+    user = await clerkClient.users.getUser(id);
+  }
+  catch(e){
+    console.error(e)
+    return
+  }
 
   return (
     <div className={`flex items-center gap-1 ${className}`}>
