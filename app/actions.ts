@@ -1,18 +1,15 @@
 "use server";
-import puppeteer from "puppeteer-extra";
-import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import { db } from "@/db/index";
 import { quizars } from "@/db/schema";
 import { ilike } from "drizzle-orm";
 import { auth } from "@clerk/nextjs/server";
+import {ScrapingBeeClient} from 'scrapingbee';
+import {load} from "cheerio"
 
-puppeteer.use(StealthPlugin());
-
-const requestHeaders = {
-  "user-agent":
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
-  Referer: "https://www.google.com/",
-};
+interface QuizletTerm {
+  term: string;
+  definition: string;
+}
 
 export async function cloneQuizlet(data: FormData) {
   "use server";
@@ -21,91 +18,76 @@ export async function cloneQuizlet(data: FormData) {
   if (!userId) throw new Error("Not authenticated");
 
   const url = data.get("url") as string;
+  if (!url) throw new Error("No URL found");
 
-  if (!url) throw new Error("no url found");
-  if (new URL(url).hostname != "quizlet.com")
-    throw new Error("the url must be a quizlet.com url");
+  const parsedUrl = new URL(url);
+  if (parsedUrl.hostname !== "quizlet.com")
+    throw new Error("The URL must be a quizlet.com URL");
 
-  const termsExist = await db
-    .select({
-      id: quizars.id,
-    })
+  const existingTerms = await db
+    .select({ id: quizars.id })
     .from(quizars)
-    .where(ilike(quizars.path, `${new URL(url).pathname}`))
+    .where(ilike(quizars.path, `${parsedUrl.pathname}`))
     .limit(1);
 
-  if (termsExist.length > 0) return termsExist[0].id;
+  if (existingTerms.length > 0) return existingTerms[0].id;
 
-  console.log(`clone request for ${url}`);
+  console.log(`Clone request for ${url}`);
 
-  const browser = await puppeteer.launch({ headless: false });
-  const page = await browser.newPage();
-  await page.setViewport({ width: 1024, height: 1024 });
-  await page.setExtraHTTPHeaders(requestHeaders);
+  const client = new ScrapingBeeClient(process.env.SCRAPINGBEE_API_KEY!);
 
-  await page.goto(url);
-  await page.waitForSelector(".SetPageTerms-termsList", { timeout: 60000 });
-  console.log("page loaded.");
-
-  const terms = await page.evaluate(() => {
-    const termItems = document.querySelectorAll(".SetPageTerms-term");
-    const terms = [];
-
-    for (let i = 0; i < termItems.length; i++) {
-      const element = termItems[i];
-      // Find the term text element
-      const termElement = element.querySelector(
-        '.s1mdxb3l[data-testid="set-page-card-side"] .s1q0b356 .TermText',
-      );
-
-      // Find the definition text element
-      const definitionElement = element.querySelector(
-        '.s1mdxb3l[data-testid="set-page-card-side"].l150nly7 .TermText',
-      );
-
-      // Check if both elements exist
-      if (!termElement || !definitionElement) {
-        continue; // Skip this iteration if elements are missing
+  try {
+    const result = await client.get({
+      url: url,
+      params: {
+        render_js: true,
+        wait_for: '.SetPageTerms-termsList',
+        timeout: 30000,
       }
+    });
 
-      // Extract and trim the text
-      // @ts-expect-error - we already check if both elements exist above
-      const term = termElement.textContent.trim();
-      // @ts-expect-error - we already check if both elements exist above
-      const definition = definitionElement.textContent.trim();
+    const html = new TextDecoder().decode(result.data);
 
-      terms.push({
-        term,
-        definition,
-      });
-    }
+    const $ = load(html);
 
-    return terms;
-  });
+    const terms: QuizletTerm[] = [];
+    $('.SetPageTerms-term').each((i, elem) => {
+      const termElement = $(elem).find('.s1mdxb3l[data-testid="set-page-card-side"] .s1q0b356 .TermText');
+      const definitionElement = $(elem).find('.s1mdxb3l[data-testid="set-page-card-side"].l150nly7 .TermText');
 
-  const name = (await page.evaluate(() => {
-    return document.querySelector(".SetPage-setIntro .tz2ipyx")?.innerHTML;
-  })) as string;
+      const term = termElement.text().trim();
+      const definition = definitionElement.text().trim();
 
-  console.log(terms);
-  await browser.close();
+      if (term && definition) {
+        terms.push({ term, definition });
+      }
+    });
 
-  const searchable = data.get("searchable") as string;
+    const name = $('.SetPage-setIntro .tz2ipyx').text().trim() || 'Unnamed Quizlet Set';
 
-  const termsInsert: typeof quizars.$inferInsert = {
-    name: name,
-    terms: JSON.stringify(terms),
-    path: new URL(url).pathname,
-    author: userId,
-    searchable: searchable === "true",
-  };
+    console.log(`Extracted ${terms.length} terms`);
 
-  const id = await db
-    .insert(quizars)
-    .values(termsInsert)
-    .returning({ id: quizars.id });
+    const searchable = data.get("searchable") as string;
 
-  return id;
+    const termsInsert: typeof quizars.$inferInsert = {
+      name: name,
+      terms: JSON.stringify(terms),
+      path: parsedUrl.pathname,
+      author: userId,
+      searchable: searchable === "true",
+    };
+
+    const [insertedRecord] = await db
+      .insert(quizars)
+      .values(termsInsert)
+      .returning({ id: quizars.id });
+
+    return insertedRecord.id;
+
+  } catch (error) {
+    console.error('Scraping error:', error);
+    throw new Error('Failed to clone Quizlet set');
+  }
 }
 
 export async function submitCustomTerms(data: FormData) {

@@ -12,15 +12,14 @@
     "@clerk/backend": "^1.19.2",
     "@clerk/nextjs": "^6.7.0",
     "@neondatabase/serverless": "^0.10.4",
+    "cheerio": "^1.0.0",
     "dotenv": "^16.4.6",
     "drizzle-orm": "^0.36.4",
     "lucide-react": "^0.468.0",
     "next": "15.0.3",
-    "puppeteer": "^23.10.0",
-    "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "react": "19.0.0-rc-66855b96-20241106",
-    "react-dom": "19.0.0-rc-66855b96-20241106"
+    "react-dom": "19.0.0-rc-66855b96-20241106",
+    "scrapingbee": "^1.7.5"
   },
   "devDependencies": {
     "@types/node": "^20",
