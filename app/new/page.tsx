@@ -3,6 +3,7 @@ import { ChangeEvent, useState } from "react";
 import { submitCustomTerms } from "../actions";
 import { useRouter } from "next/navigation";
 import { Trash } from "lucide-react";
+import SubmitButton from "@/lib/SubmitButton";
 
 export default function TermsCreator() {
   const [terms, setTerms] = useState<
@@ -44,9 +45,7 @@ export default function TermsCreator() {
           hidden
           name="terms"
         ></input>
-        <button className="p-2.5 rounded bg-gray-100 w-32 dark:bg-gray-800 dark:text-white">
-          Submit
-        </button>
+        <SubmitButton />
       </form>
 
       <TermsList onUpdate={(t) => setTerms(t)} />
