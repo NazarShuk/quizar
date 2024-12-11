@@ -3,8 +3,8 @@ import { db } from "@/db/index";
 import { quizars } from "@/db/schema";
 import { ilike } from "drizzle-orm";
 import { auth } from "@clerk/nextjs/server";
-import {ScrapingBeeClient} from 'scrapingbee';
-import {load} from "cheerio"
+import { ScrapingBeeClient } from "scrapingbee";
+import { load } from "cheerio";
 
 interface QuizletTerm {
   term: string;
@@ -41,9 +41,9 @@ export async function cloneQuizlet(data: FormData) {
       url: url,
       params: {
         render_js: true,
-        wait_for: '.SetPageTerms-termsList',
+        wait_for: ".SetPageTerms-termsList",
         timeout: 30000,
-      }
+      },
     });
 
     const html = new TextDecoder().decode(result.data);
@@ -51,9 +51,13 @@ export async function cloneQuizlet(data: FormData) {
     const $ = load(html);
 
     const terms: QuizletTerm[] = [];
-    $('.SetPageTerms-term').each((i, elem) => {
-      const termElement = $(elem).find('.s1mdxb3l[data-testid="set-page-card-side"] .s1q0b356 .TermText');
-      const definitionElement = $(elem).find('.s1mdxb3l[data-testid="set-page-card-side"].l150nly7 .TermText');
+    $(".SetPageTerms-term").each((i, elem) => {
+      const termElement = $(elem).find(
+        '.s1mdxb3l[data-testid="set-page-card-side"] .s1q0b356 .TermText',
+      );
+      const definitionElement = $(elem).find(
+        '.s1mdxb3l[data-testid="set-page-card-side"].l150nly7 .TermText',
+      );
 
       const term = termElement.text().trim();
       const definition = definitionElement.text().trim();
@@ -63,7 +67,8 @@ export async function cloneQuizlet(data: FormData) {
       }
     });
 
-    const name = $('.SetPage-setIntro .tz2ipyx').text().trim() || 'Unnamed Quizlet Set';
+    const name =
+      $(".SetPage-setIntro .tz2ipyx").text().trim() || "Unnamed Quizlet Set";
 
     console.log(`Extracted ${terms.length} terms`);
 
@@ -83,10 +88,9 @@ export async function cloneQuizlet(data: FormData) {
       .returning({ id: quizars.id });
 
     return insertedRecord.id;
-
   } catch (error) {
-    console.error('Scraping error:', error);
-    throw new Error('Failed to clone Quizlet set');
+    console.error("Scraping error:", error);
+    throw new Error("Failed to clone Quizlet set");
   }
 }
 
