@@ -129,7 +129,7 @@ async function User({ id }: { id: string }) {
         src={user.imageUrl}
         alt={"Profile"}
       />
-      <h1>{user.username}</h1>
+      <Link href={`/users/${user.id}`}>{user.username}</Link>
     </div>
   );
 }
