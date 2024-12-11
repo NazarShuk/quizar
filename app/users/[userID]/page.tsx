@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { quizars } from "@/db/schema";
 import { clerkClient } from "@/lib/clerk";
 import { User } from "@clerk/backend";
-import { eq } from "drizzle-orm";
+import { eq, and} from "drizzle-orm";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -63,7 +63,7 @@ async function UserTerms({ user }: { user: User }) {
   const terms = await db
     .select()
     .from(quizars)
-    .where(eq(quizars.author, user.id))
+    .where(and(eq(quizars.author, user.id), eq(quizars.searchable, true)))
     .limit(10);
 
   if (terms.length === 0) {
