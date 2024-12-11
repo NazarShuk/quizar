@@ -22,6 +22,12 @@ const nextConfig: NextConfig = {
         pathname: "/**",
         port: "",
       },
+      {
+        protocol: "https",
+        hostname: "via.placeholder.com",
+        pathname: "/**",
+        port: "",
+      },
     ],
   },
   /* config options here */

@@ -31,7 +31,7 @@ async function Searching() {
         .fill(null)
         .map((_, index) => (
           <div
-            className={`h-20 mb-1.5 bg-gray-200 rounded animate-pulse`}
+            className={`h-20 mb-1 bg-gray-200 dark:bg-gray-700 dark:text-white rounded animate-pulse`}
             role="status"
             aria-label="Loading..."
             key={index}
@@ -66,7 +66,7 @@ async function SearchResults({ query }: { query: string }) {
         {terms.map((termsItem, index) => (
           <li
             key={index}
-            className="underline h-16 bg-gray-100 flex flex-row justify-between items-center p-1 rounded"
+            className="underline h-16 bg-gray-100 dark:bg-gray-800 dark:text-white flex flex-row justify-between items-center p-1 rounded mb-1"
           >
             <Link href={`/terms/${termsItem.id}`}>{termsItem.name}</Link>
             <User className="no-underline" id={termsItem.author} />
@@ -78,13 +78,12 @@ async function SearchResults({ query }: { query: string }) {
 }
 
 async function User({ id, className }: { id: string; className: string }) {
-  let user
-  try{
+  let user;
+  try {
     user = await clerkClient.users.getUser(id);
-  }
-  catch(e){
-    console.error(e)
-    return
+  } catch (e) {
+    console.error(e);
+    return;
   }
 
   return (

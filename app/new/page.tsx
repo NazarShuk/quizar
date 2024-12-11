@@ -29,7 +29,7 @@ export default function TermsCreator() {
         className="mb-5 flex flex-col justify-start m-auto"
       >
         <input
-          className="bg-gray-100 p-1 rounded"
+          className="bg-gray-100 p-1 rounded dark:bg-gray-700 dark:text-white"
           name="name"
           placeholder="Name"
           required
@@ -44,7 +44,9 @@ export default function TermsCreator() {
           hidden
           name="terms"
         ></input>
-        <button className="p-2.5 rounded bg-gray-100 w-32">Submit</button>
+        <button className="p-2.5 rounded bg-gray-100 w-32 dark:bg-gray-800 dark:text-white">
+          Submit
+        </button>
       </form>
 
       <TermsList onUpdate={(t) => setTerms(t)} />
@@ -119,7 +121,10 @@ function TermsList({
         ))}
       </ul>
 
-      <button onClick={addTerm} className="p-2.5 bg-gray-100 rounded">
+      <button
+        onClick={addTerm}
+        className="p-2.5 bg-gray-100 rounded dark:bg-gray-800 dark:text-white"
+      >
         Add more terms
       </button>
     </div>
@@ -147,19 +152,19 @@ function Term({
   }
 
   return (
-    <li className="min-h-20 bg-gray-100 mb-1.5 p-1 flex flex-col items-end justify-between text-center rounded">
+    <li className="min-h-20 bg-gray-100 dark:bg-gray-800 dark:text-white mb-1.5 p-1 flex flex-col items-end justify-between text-center rounded">
       <button className="w-fit h-full right-0 mb-1" onClick={onRemove}>
         <Trash width={20} height={20} />
       </button>
       <div className="flex items-center justify-between gap-2.5 h-full w-full">
         <textarea
           onChange={onTermChange}
-          className="resize-none h-full w-full"
+          className="resize-none h-full w-full dark:bg-gray-700 dark:text-white rounded p-1"
           placeholder="Term"
         ></textarea>
         <textarea
           onChange={onDefinitionChange}
-          className="resize-none h-full w-full"
+          className="resize-none h-full w-full dark:bg-gray-700 dark:text-white rounded p-1"
           placeholder="Definition"
         ></textarea>
       </div>

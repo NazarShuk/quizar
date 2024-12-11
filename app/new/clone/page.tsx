@@ -50,7 +50,7 @@ function CloneForm() {
         className="flex flex-col justify-start w-1/2 m-auto"
       >
         <input
-          className="p-1 bg-gray-100 rounded"
+          className="p-1 bg-gray-100 rounded dark:bg-gray-700 dark:text-white"
           name="url"
           placeholder="Quizlet link"
           required
@@ -59,7 +59,10 @@ function CloneForm() {
           <label>Public: </label>
           <input type="checkbox" name="searchable" defaultValue="true"></input>
         </div>
-        <button className="bg-gray-100 rounded w-32 p-1 m-auto" type="submit">
+        <button
+          className="bg-gray-100 rounded w-32 p-1 m-auto dark:bg-gray-700 dark:text-white"
+          type="submit"
+        >
           Submit
         </button>
       </form>
