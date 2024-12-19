@@ -13,12 +13,14 @@ export default function Home() {
           <Link
             className="text-black bg-gray-100 dark:bg-gray-800 dark:text-white p-2.5 rounded"
             href={"/new"}
+            prefetch={true}
           >
             Create your own
           </Link>
           <Link
             className="text-black bg-gray-100 dark:bg-gray-800 dark:text-white p-2.5 rounded"
             href={"/new/clone"}
+            prefetch={true}
           >
             Clone from Quizlet
           </Link>

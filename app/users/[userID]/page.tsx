@@ -33,8 +33,12 @@ export default async function UserPage({
           src={user.imageUrl}
           alt={"Profile"}
         />
-        <h1 className="text-2xl font-bold">{user.username}</h1>
+        <div>
+          <h1 className="text-2xl font-bold">{user.username}</h1>
+          <p>Joined on {new Date(user.createdAt).toLocaleDateString()}</p>
+        </div>
       </div>
+
       <Suspense fallback={<TermsLoading />}>
         <UserTerms user={user} />
       </Suspense>
