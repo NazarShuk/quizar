@@ -1,6 +1,7 @@
 "use client";
 import { DataConnection, Peer } from "peerjs"
 import { useEffect, useState, useCallback } from "react"
+import { motion, AnimatePresence } from 'framer-motion';
 import Image from "next/image"
 
 interface LiveConnection {
@@ -24,6 +25,8 @@ export default function Live({ terms }: { terms: Array<{ term: string, definitio
     const [peerId, setPeerId] = useState<string | null>(null)
     const [connections, setConnections] = useState<Array<LiveConnection>>([])
     const [screen, setScreen] = useState<string>("waiting")
+    
+    const [time, setTime] = useState<number>(300)
 
     const getRandomQuestion = useCallback(() => {
         const id = Math.floor(Math.random() * terms.length)
@@ -123,10 +126,15 @@ export default function Live({ terms }: { terms: Array<{ term: string, definitio
                 
                         // add random answer choices
                         for (let i = 0; i < 3; i++) {
-                            const { answer } = getRandomQuestion()
-                            if (answerChoices.includes(answer)) continue
+                            let { answer } = getRandomQuestion()
+                            while (answerChoices.includes(answer)) {
+                                answer = getRandomQuestion().answer
+                            }
                             answerChoices.push(answer)
                         }
+
+                        // shuffle answerChoices
+                        answerChoices.sort(() => Math.random() - 0.5)
 
                         sendQuestion(newConnection, termID, answerChoices, term)
 
@@ -178,11 +186,17 @@ export default function Live({ terms }: { terms: Array<{ term: string, definitio
 
     return (
         <div>
-            <h1 className="text-2xl">Go to <span className="underline">quizar.nshis.com/live</span></h1>
-            <h1 className="text-xl">And enter this id:</h1>
-            <h1 className="text-2xl font-bold">{peerId.replace("quizar-", "")}</h1>
+            {screen === "waiting" &&
+                <div>
+                    <h1 className="text-2xl">Go to <span className="underline">quizar.nshis.com/live</span></h1>
+                    <h1 className="text-xl">And enter this code:</h1>
+                    <h1 className="text-2xl font-bold">{peerId.replace("quizar-", "")}</h1>
+                </div>
+            }
+            {screen === "leaderboard" && <TimeDisplay seconds={time} />}
+            
 
-            {(connections.length > 0 && screen === "waiting") && 
+            {(screen === "waiting") && 
                 <button 
                     className="text-black bg-gray-100 dark:bg-gray-800 dark:text-white p-2.5 rounded" 
                     onClick={startGame}
@@ -198,16 +212,44 @@ export default function Live({ terms }: { terms: Array<{ term: string, definitio
 }
 
 function UsersLeaderboard({ connections }: { connections: Array<LiveConnection> }) {
+    const sortedConnections = connections.sort((a, b) => b.score - a.score);
+
     return (
-        <ul>
-            {connections.sort((a, b) => b.score - a.score).map((connection) => (
-                <li key={connection.connection.peer}>
-                    <LiveUser username={connection.username} profileUrl={connection.profileUrl} />
-                    <span className="text-sm">{connection.score}</span>
-                </li>
+        <ul className="space-y-2.5">
+          <AnimatePresence initial={false}>
+            {sortedConnections.map((connection) => (
+              <motion.li
+                key={connection.connection.peer}
+                layout
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: -100 }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className="flex flex-row justify-between items-center w-full h-16 dark:bg-gray-800 dark:text-white rounded p-1"
+              >
+                <div className="flex flex-row justify-start items-center gap-2.5">
+                  <Image 
+                    className="rounded-full" 
+                    src={connection.profileUrl} 
+                    alt={connection.username} 
+                    width={50} 
+                    height={50} 
+                  />
+                  <h1>{connection.username}</h1>
+                </div>
+                <motion.span
+                  key={connection.score}
+                  initial={{ scale: 1.2, color: "#22c55e" }}
+                  animate={{ scale: 1, color: "inherit" }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {connection.score}
+                </motion.span>
+              </motion.li>
             ))}
+          </AnimatePresence>
         </ul>
-    )
+      );
 }
 
 function UsersList({ connections }: { connections: Array<LiveConnection> }) {
@@ -223,9 +265,18 @@ function UsersList({ connections }: { connections: Array<LiveConnection> }) {
 
 function LiveUser({ username, profileUrl }: { username: string, profileUrl: string }) {
     return (
-        <div className="flex flex-row justify-start gap-2.5 items-center w-48 h-16 dark:bg-gray-800 dark:text-white rounded p-1">
+        <div className="flex flex-row justify-start gap-2.5 items-center min-w-48 h-16 dark:bg-gray-800 dark:text-white rounded p-1">
             <Image className="rounded-full" src={profileUrl} alt={username} width={50} height={50} />
             <h1>{username}</h1>
         </div>
     )
+}
+
+function TimeDisplay({ seconds } : { seconds: number }) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+  
+    const formattedTime = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  
+    return <h1 className="text-4xl font-bold m-auto text-center">{formattedTime}</h1>;
 }

@@ -4,7 +4,7 @@ import { Peer, DataConnection } from "peerjs"
 import SubmitButton from "@/lib/SubmitButton";
 import { useUser } from "@clerk/nextjs";
 import Image from "next/image"
-import { UserResource } from "@clerk/types"
+import { MotionConfig } from "motion/react";
 
 enum ClientPacketTypes {
     Question = 'question',
@@ -30,15 +30,17 @@ export default function LivePage() {
     const [question, setQuestion] = useState<{ termID: number, term: string, answers: Array<string> }>()
     const [score , setScore] = useState(0)
 
+    const [connecting, setConnecting] = useState(false)
+    const [ready, setReady] = useState(false)
+
     useEffect(() => {
         const peer = new Peer()
         setPeer(peer)
+        peer.on("open", () => {
+            setReady(true)
+        })
 
     }, [])
-
-    if (!user) {
-        return <div>Loading...</div>
-    }
 
     function connect(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
@@ -46,15 +48,17 @@ export default function LivePage() {
         if (!peerId) {
             return
         }
+        setConnecting(true)
         const connection = peer?.connect("quizar-" + peerId, {
             metadata: {
                 username: usernameRef.current?.value || "User",
-                profileUrl: user?.imageUrl
+                profileUrl: user?.imageUrl || "https://via.placeholder.com/50"
             }
         })
         connection?.on("open", () => {
             console.log("open")
             setConnection(connection)
+            setConnecting(false)
         })
         connection?.on("data", (data) => {
             handlePackets(JSON.parse(data as string))
@@ -108,9 +112,11 @@ export default function LivePage() {
             <div>
                 <h1 className={"text-3xl mb-2.5 font-bold text-center"}>Connect to a game</h1>
                 <form onSubmit={connect} className="flex flex-col justify-start w-1/2 m-auto">
-                    <input className={"mb-1 p-1 bg-gray-100 rounded dark:bg-gray-700 dark:text-white"} type="text" placeholder="Enter game code" required ref={peerIdRef} />
-                    <input className={"mb-1 p-1 bg-gray-100 rounded dark:bg-gray-700 dark:text-white"} type="text" placeholder="Enter username" required defaultValue={user?.username || ""} ref={usernameRef} />
-                    <SubmitButton />
+                    <input maxLength={10} className={"mb-1 p-1 bg-gray-100 rounded dark:bg-gray-700 dark:text-white"} type="text" placeholder="Enter game code" required ref={peerIdRef} />
+                    <input maxLength={30} className={"mb-1 p-1 bg-gray-100 rounded dark:bg-gray-700 dark:text-white"} type="text" placeholder="Enter username" required defaultValue={user?.username || ""} ref={usernameRef} />
+                    <button aria-disabled={connecting} disabled={connecting} className={`text-black bg-gray-100 dark:bg-gray-800 dark:text-white p-2.5 rounded ${connecting ? "animate-pulse" : ""}`} type="submit">
+                        {connecting ? "Connecting..." : "Connect"}
+                    </button>
                 </form>
             </div>
         )
@@ -121,10 +127,10 @@ export default function LivePage() {
         <div>
             <div className="flex flex-row justify-between items-center bg-gray-100 dark:bg-gray-800 dark:text-white rounded p-1 mb-2.5">
                 <div className="flex flex-row justify-start items-center gap-2.5">
-                    <Image className="rounded-full" src={user?.imageUrl} alt={user?.username || ""} width={50} height={50} />
-                    <h1 className="text-2xl font-bold">{user?.username}</h1>
+                    <Image className="rounded-full" src={user?.imageUrl || "https://via.placeholder.com/50"} alt={usernameRef.current?.value || "User"} width={50} height={50} />
+                    <h1 className="text-2xl font-bold">{connection?.metadata.username || "User"}</h1>
                 </div>
-                <h1>{score} score</h1>
+                <h1><span> {score} </span> score</h1>
             </div>
 
             {screen === "waiting" && <WaitingScreen />}
@@ -137,7 +143,7 @@ export default function LivePage() {
 
 function CorrectScreen(){
     return (
-        <div className="flex flex-col justify-center items-center bg-green-100 dark:bg-green-800 p-2 rounded">
+        <div className="flex w-full flex-col justify-center items-center bg-green-100 dark:bg-green-800 p-2 rounded">
             <h1 className="text-2xl font-bold">Correct!</h1>
         </div>
     )
@@ -145,7 +151,7 @@ function CorrectScreen(){
 
 function WrongScreen(){
     return (
-        <div className="flex flex-col justify-center items-center bg-red-100 dark:bg-red-800 p-2 rounded">
+        <div className="flex w-full flex-col justify-center items-center bg-red-100 dark:bg-red-800 p-2 rounded">
             <h1 className="text-2xl font-bold">Wrong!</h1>
         </div>
     )
