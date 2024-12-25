@@ -91,7 +91,7 @@ async function TermsList({ id }: { id: number }) {
           <Link href={`/terms/${id}/test`}>Test</Link>
         </div>
         <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 dark:text-white rounded p-1 h-full w-full">
-          <h1 className="opacity-50">Match (coming soon)</h1>
+          <Link href={`/terms/${id}/live`}>Live</Link>
         </div>
       </div>
 

@@ -1,5 +1,7 @@
 # Quizar
 
+Official website: https://quizar.nshis.com/
+
 Quizar is an app designed to help study for your test easier and simpler. You can create your own study sets or clone from Quizlet.
 
 ## Features
