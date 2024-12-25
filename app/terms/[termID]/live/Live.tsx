@@ -1,6 +1,6 @@
 "use client";
 import { DataConnection, Peer } from "peerjs"
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from "next/image"
 
@@ -21,12 +21,12 @@ interface ClientPeerPacket {
 }
 
 export default function Live({ terms }: { terms: Array<{ term: string, definition: string }> }) {
-    const [peer, setPeer] = useState<Peer | null>(null)
     const [peerId, setPeerId] = useState<string | null>(null)
     const [connections, setConnections] = useState<Array<LiveConnection>>([])
     const [screen, setScreen] = useState<string>("waiting")
     
     const [time, setTime] = useState<number>(300)
+    const timeInputRef = useRef<HTMLInputElement>(null)
 
     const getRandomQuestion = useCallback(() => {
         const id = Math.floor(Math.random() * terms.length)
@@ -146,9 +146,40 @@ export default function Live({ terms }: { terms: Array<{ term: string, definitio
         }
     }, [terms, sendScreen, sendQuestion, getRandomQuestion, sendScore])
 
+    const showResults = useCallback(() => {
+        setScreen("results")
+        broadcastScreen("results")
+
+        const leaderboard: Array<{ username: string, score: number, profileUrl: string }> = []
+
+        for (let i = 0; i < connections.length; i++) {
+            leaderboard.push({
+                username: connections[i].username,
+                score: connections[i].score,
+                profileUrl: connections[i].profileUrl,
+            })
+        }
+
+        connections.forEach((connection) => {
+            connection.connection.send(JSON.stringify({
+                type: "results",
+                data: {
+                    leaderboard: leaderboard,
+                }
+            }))
+        })
+
+    }, [setScreen, broadcastScreen, connections])
+
+    const restart = useCallback(() => {
+        setTime(parseInt(timeInputRef.current?.value || "300") || 300)
+
+        startGame()
+
+    }, [startGame])
+
     useEffect(() => {
         const newPeer = new Peer(`quizar-${Math.random().toString(36).substring(2).slice(0, 5)}`)
-        setPeer(newPeer)
 
         newPeer.on("open", (id) => {
             setPeerId(id)
@@ -176,11 +207,29 @@ export default function Live({ terms }: { terms: Array<{ term: string, definitio
                 console.error(error)
             })
         })
-
         return () => {
             newPeer.destroy()
         }
-    }, [handlePackets]) // Only include handlePackets in dependencies
+    }, [handlePackets])
+
+    useEffect(() => {
+        let intervalId: NodeJS.Timeout
+
+        if (time > 0 && screen === "leaderboard") {
+          intervalId = setInterval(() => {
+            setTime(prevTime => prevTime - 1);
+          }, 1000);
+        }
+        else{
+            if (time <= 0) {
+                showResults()
+            }
+        }
+
+        return () => {
+          clearInterval(intervalId)
+        }
+    }, [time, screen, showResults])
 
     if (!peerId) return <div>Connecting...</div>
 
@@ -197,16 +246,45 @@ export default function Live({ terms }: { terms: Array<{ term: string, definitio
             
 
             {(screen === "waiting") && 
-                <button 
-                    className="text-black bg-gray-100 dark:bg-gray-800 dark:text-white p-2.5 rounded" 
-                    onClick={startGame}
-                >
-                    Start
-                </button>
+                <div className="flex flex-row justify-start items-center gap-2.5 mb-5">
+                    <button 
+                        className={`text-black bg-gray-100 dark:bg-gray-800 dark:text-white p-2.5 rounded ${connections.length === 0 ? "opacity-50" : ""}`}
+                        onClick={startGame}
+                        disabled={connections.length === 0}
+                        aria-disabled={connections.length === 0}
+                    >
+                        Start
+                    </button>
+
+                    <p>Time in seconds:</p>
+                    <input ref={timeInputRef} type={"number"} value={time} onChange={(e)=>setTime(parseInt(e.target.value))} className="text-black bg-gray-100 dark:bg-gray-800 dark:text-white p-2.5 rounded" placeholder="Time in seconds" />
+                </div> 
             }
 
             {screen === "waiting" && <UsersList connections={connections} />}
             {screen === "leaderboard" && <UsersLeaderboard connections={connections} />}
+            {screen === "results" && <Results restart={() => restart()} connections={connections} />}
+        </div>
+    )
+}
+
+function Results({ connections, restart }: { connections: Array<LiveConnection>, restart: () => void }) {
+
+    const sortedConnections = connections.sort((a, b) => b.score - a.score)
+    const winner = sortedConnections[0]
+
+    return (
+        <div>
+            <div className="flex flex-col justify-center items-center">
+                <Image className="rounded-full" src={winner.profileUrl} alt={winner.username} width={50} height={50} />
+                <h1 className="text-4xl">{winner.username} won!</h1>
+                <h1 className="text-2xl">Score: {winner.score}</h1>
+
+            </div>
+            
+            <div className="flex flex-col justify-center items-center">
+                <button className="text-black bg-gray-100 dark:bg-gray-800 dark:text-white p-2.5 rounded mt-5" onClick={restart}>Restart</button>            
+            </div>
         </div>
     )
 }
@@ -265,10 +343,10 @@ function UsersList({ connections }: { connections: Array<LiveConnection> }) {
 
 function LiveUser({ username, profileUrl }: { username: string, profileUrl: string }) {
     return (
-        <div className="flex flex-row justify-start gap-2.5 items-center min-w-48 h-16 dark:bg-gray-800 dark:text-white rounded p-1">
+        <motion.div initial={{opacity: 0, scale: 0}} animate={{opacity: 1, scale: 1}} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="flex flex-row justify-start gap-2.5 items-center min-w-48 h-16 dark:bg-gray-800 dark:text-white rounded p-1">
             <Image className="rounded-full" src={profileUrl} alt={username} width={50} height={50} />
             <h1>{username}</h1>
-        </div>
+        </motion.div>
     )
 }
 

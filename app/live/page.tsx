@@ -1,15 +1,15 @@
 "use client";
 import { useEffect, useState, useRef } from "react"
 import { Peer, DataConnection } from "peerjs"
-import SubmitButton from "@/lib/SubmitButton";
 import { useUser } from "@clerk/nextjs";
 import Image from "next/image"
-import { MotionConfig } from "motion/react";
+import { motion } from "motion/react";
 
 enum ClientPacketTypes {
     Question = 'question',
     Screen = 'screen',
     Score = 'score',
+    Results = 'results',
 }
 
 interface ServerPeerPacket {
@@ -32,6 +32,8 @@ export default function LivePage() {
 
     const [connecting, setConnecting] = useState(false)
     const [ready, setReady] = useState(false)
+
+    const [leaderboard, setLeaderboard] = useState<Array<{ username: string, score: number, profileUrl: string }>>([])
 
     useEffect(() => {
         const peer = new Peer()
@@ -92,6 +94,11 @@ export default function LivePage() {
                 const score = packet.data.score as number
                 setScore(score)
             }
+            else if (packet.type === ClientPacketTypes.Results) {
+                //@ts-expect-error we know that packet.data is an object
+                const leaderboard = packet.data.leaderboard as Array<{ username: string, score: number, profileUrl: string }>
+                setLeaderboard(leaderboard)
+            }
         }
     }
 
@@ -114,8 +121,8 @@ export default function LivePage() {
                 <form onSubmit={connect} className="flex flex-col justify-start w-1/2 m-auto">
                     <input maxLength={10} className={"mb-1 p-1 bg-gray-100 rounded dark:bg-gray-700 dark:text-white"} type="text" placeholder="Enter game code" required ref={peerIdRef} />
                     <input maxLength={30} className={"mb-1 p-1 bg-gray-100 rounded dark:bg-gray-700 dark:text-white"} type="text" placeholder="Enter username" required defaultValue={user?.username || ""} ref={usernameRef} />
-                    <button aria-disabled={connecting} disabled={connecting} className={`text-black bg-gray-100 dark:bg-gray-800 dark:text-white p-2.5 rounded ${connecting ? "animate-pulse" : ""}`} type="submit">
-                        {connecting ? "Connecting..." : "Connect"}
+                    <button aria-disabled={(connecting || !ready)} disabled={connecting || !ready} className={`text-black bg-gray-100 dark:bg-gray-800 dark:text-white p-2.5 rounded ${connecting || !ready ? "animate-pulse" : ""}`} type="submit">
+                        {ready ? connecting ? "Connecting..." : "Connect" : "Loading..."}
                     </button>
                 </form>
             </div>
@@ -137,6 +144,53 @@ export default function LivePage() {
             {(screen === "questions" && question) && <QuestionScreen question={question.term} answers={question.answers} onAnswered={(answer) => handleAnswer(answer)} />}
             {(screen === "correct" && question) && <CorrectScreen />}
             {(screen === "wrong" && question) && <WrongScreen />}
+            {(screen === "results" && leaderboard) && <ResultsScreen leaderboard={leaderboard} />}
+        </div>
+    )
+}
+
+function ResultsScreen({ leaderboard }: { leaderboard: Array<{ username: string, score: number, profileUrl: string }> }) {
+    const winner = leaderboard[0]
+    return (
+        <div>
+        <div className="flex flex-col justify-center items-center">
+            <Image className="rounded-full" src={winner.profileUrl} alt={winner.username} width={50} height={50} />
+            <h1 className="text-4xl">{winner.username} won!</h1>
+            <h1 className="text-2xl">Score: {winner.score}</h1>
+        </div>
+
+            <ul className="space-y-2.5">
+                {leaderboard.map((leaderboardEntry) => (
+                    <motion.li
+                        key={leaderboardEntry.username}
+                        layout
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, x: -100 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        className="flex flex-row justify-between items-center w-full h-16 dark:bg-gray-800 dark:text-white rounded p-1"
+                    >
+                        <div className="flex flex-row justify-start items-center gap-2.5">
+                            <Image 
+                                className="rounded-full" 
+                                src={leaderboardEntry.profileUrl} 
+                                alt={leaderboardEntry.username} 
+                                width={50} 
+                                height={50} 
+                            />
+                            <h1>{leaderboardEntry.username}</h1>
+                        </div>
+                        <motion.span
+                            key={leaderboardEntry.score}
+                            initial={{ scale: 1.2, color: "#22c55e" }}
+                            animate={{ scale: 1, color: "inherit" }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            {leaderboardEntry.score}
+                        </motion.span>
+                    </motion.li>
+                ))}
+            </ul>
         </div>
     )
 }
