@@ -41,7 +41,7 @@ export default function RootLayout({
           <div className={"flex flex-col items-center"}>
             <NavBar />
 
-            <div className={`p-2 lg:w-1/2`}>{children}</div>
+            <div className={`p-2 w-full lg:w-1/2`}>{children}</div>
           </div>
         </body>
       </html>
@@ -53,10 +53,10 @@ function NavBar() {
   return (
     <div className="w-full h-12 bg-gray-100 dark:bg-gray-900 flex justify-between items-center p-2.5">
       <div className="h-full flex justify-start items-center gap-5">
-        <Link className="text-2xl font-bold" href="/">
+        <Link className="text-2xl font-bold" href="/" prefetch={true}>
           Quizar
         </Link>
-        <Link className="text-xl" href={"/new"}>
+        <Link className="text-xl" href={"/new"} prefetch={true}>
           New
         </Link>
 

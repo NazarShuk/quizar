@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { quizars } from "@/db/schema";
 import { clerkClient } from "@/lib/clerk";
 import { User } from "@clerk/backend";
-import { eq, and} from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -33,8 +33,12 @@ export default async function UserPage({
           src={user.imageUrl}
           alt={"Profile"}
         />
-        <h1 className="text-2xl font-bold">{user.username}</h1>
+        <div>
+          <h1 className="text-2xl font-bold">{user.username}</h1>
+          <p>Joined on {new Date(user.createdAt).toLocaleDateString()}</p>
+        </div>
       </div>
+
       <Suspense fallback={<TermsLoading />}>
         <UserTerms user={user} />
       </Suspense>
