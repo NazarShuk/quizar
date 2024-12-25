@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { quizars } from "@/db/schema";
 import { clerkClient } from "@/lib/clerk";
 import { User } from "@clerk/backend";
-import { eq, and} from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
