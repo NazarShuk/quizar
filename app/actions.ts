@@ -5,6 +5,7 @@ import { ilike } from "drizzle-orm";
 import { auth } from "@clerk/nextjs/server";
 import { ScrapingBeeClient } from "scrapingbee";
 import { load } from "cheerio";
+import AISetGenerator from "@/lib/aiSetGenerator";
 
 interface QuizletTerm {
   term: string;
@@ -53,10 +54,10 @@ export async function cloneQuizlet(data: FormData) {
     const terms: QuizletTerm[] = [];
     $(".SetPageTerms-term").each((i, elem) => {
       const termElement = $(elem).find(
-        '.s1mdxb3l[data-testid="set-page-card-side"] .s1q0b356 .TermText',
+        '.s1mdxb3l[data-testid="set-page-card-side"] .s1q0b356 .TermText'
       );
       const definitionElement = $(elem).find(
-        '.s1mdxb3l[data-testid="set-page-card-side"].l150nly7 .TermText',
+        '.s1mdxb3l[data-testid="set-page-card-side"].l150nly7 .TermText'
       );
 
       const term = termElement.text().trim();
@@ -121,4 +122,18 @@ export async function submitCustomTerms(data: FormData) {
     .returning({ id: quizars.id });
 
   return id[0].id;
+}
+
+export async function generateFlashcards(data: FormData) {
+  "use server";
+
+  const { userId } = await auth();
+  if (!userId) throw new Error("Not authenticated");
+
+  const prompt = data.get("prompt") as string;
+  if (!prompt) throw new Error("Prompt is invalid");
+
+  const generator = new AISetGenerator();
+
+  return generator.generate(prompt);
 }
