@@ -2,11 +2,11 @@
 import { LoaderCircle } from "lucide-react";
 import { useFormStatus } from "react-dom";
 
-export default function SubmitButton() {
+export default function SubmitButton({ ...props }: { className?: string }) {
   const { pending } = useFormStatus();
   return (
     <button
-      className="p-2.5 rounded bg-gray-100 w-32 dark:bg-gray-800 dark:text-white"
+      className={`p-2.5 rounded bg-gray-100 w-32 dark:bg-gray-800 dark:text-white ${props.className}`}
       disabled={pending}
       type="submit"
     >

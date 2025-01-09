@@ -99,16 +99,16 @@ function AIForm({
 
   return (
     <form
-      className="flex flex-col justify-between h-full w-1/2"
+      className="flex flex-col justify-between items-center h-full w-1/2"
       action={submit}
     >
       <input
-        className="bg-gray-100 p-1 rounded dark:bg-gray-700 dark:text-white"
+        className="bg-gray-100 p-1 rounded dark:bg-gray-700 dark:text-white w-full"
         name="prompt"
         placeholder="Ask AI to generate flashcards"
         required
       ></input>
-      <SubmitButton />
+      <SubmitButton className="w-full" />
     </form>
   );
 }
