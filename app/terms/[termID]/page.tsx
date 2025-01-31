@@ -6,6 +6,9 @@ import { eq } from "drizzle-orm";
 import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
+import SubmitButton from "@/lib/SubmitButton";
+import { revalidatePath } from "next/cache";
 
 export default async function Terms({
   params,
@@ -70,9 +73,37 @@ async function TermsList({ id }: { id: number }) {
     terms: termsQuery[0].terms as Array<{ term: string; definition: string }>,
   };
 
+  const {userId} = await auth();
+
+  async function changeName(data : FormData){
+    "use server";
+
+    if(!data.get("name")) return
+
+    const {userId} = await auth();
+    
+    if(!userId) return
+
+
+    await db.update(quizars)
+    .set({name: data.get("name") as string})
+    .where(eq(quizars.id, id))
+
+    revalidatePath(`/terms/${id}`);
+  }
+
   return (
     <div>
-      <h1 className="text-4xl mb-1">{terms.name}</h1>
+      {userId !== termsQuery[0].author && (
+
+        <h1 className="text-4xl mb-1">{terms.name}</h1>
+)}
+      {userId === termsQuery[0].author && (
+        <form action={changeName} className="flex flex-row gap-1">
+          <input className="text-4xl bg-transparent dark:text-white rounded p-1 w-full" type="text" name="name" defaultValue={terms.name} />
+          <SubmitButton />
+        </form>
+      )}
       {termsQuery[0].path && (
         <Link
           className="underline"
