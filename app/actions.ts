@@ -3,7 +3,6 @@ import { db } from "@/db/index";
 import { quizars } from "@/db/schema";
 import { ilike } from "drizzle-orm";
 import { auth } from "@clerk/nextjs/server";
-import { ScrapingBeeClient } from "scrapingbee";
 import { load } from "cheerio";
 import AISetGenerator from "@/lib/aiSetGenerator";
 
@@ -11,7 +10,6 @@ interface QuizletTerm {
   term: string;
   definition: string;
 }
-
 export async function cloneQuizlet(data: FormData) {
   "use server";
 
@@ -35,19 +33,9 @@ export async function cloneQuizlet(data: FormData) {
 
   console.log(`Clone request for ${url}`);
 
-  const client = new ScrapingBeeClient(process.env.SCRAPINGBEE_API_KEY!);
-
   try {
-    const result = await client.get({
-      url: url,
-      params: {
-        render_js: true,
-        wait_for: ".SetPageTerms-termsList",
-        timeout: 30000,
-      },
-    });
-
-    const html = new TextDecoder().decode(result.data);
+    const response = await fetch(`https://api.scraperapi.com?api_key=${process.env.SCRAPERAPI_KEY}&url=${encodeURIComponent(url)}`);
+    const html = await response.text();
 
     const $ = load(html);
 
